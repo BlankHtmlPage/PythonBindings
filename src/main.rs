@@ -1,12 +1,12 @@
-// src/main.rs for the Rust helper "Flurion's Python Bindings"
+// src/main.rs for the Rust helper "FlurionsPythonBindings"
 
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, Write, Read};  // Added Read for read_exact
 use std::net::{TcpListener, TcpStream};
-use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::fs::{self, File};
 use std::env;
 use log::{info, debug, error, warn};
+use env_logger;
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -95,7 +95,7 @@ fn handle_connection(mut stream: TcpStream) -> io::Result<()> {
     // Read body
     if content_length > 0 {
         buffer.resize(content_length, 0);
-        if reader.read_exact(&mut buffer).is_err() {
+        if reader.read_exact(&mut buffer).is_err() {  // Now works with Read in scope
             error!("Failed to read body");
             send_response(&mut stream, 500, "Internal Server Error")?;
             return Ok(());
