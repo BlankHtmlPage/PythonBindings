@@ -1,0 +1,102 @@
+# .github/workflows/release.yml
+
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - '**'  # Run CI builds on pushes to any branch
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name (e.g., "1-16-5" or "1-20-1")'
+        required: true
+        default: '1-20-1'
+        type: string
+      java_version:
+        description: 'Java version (16, 17 or 21)'
+        required: false
+        default: '17'
+        type: choice
+        options:
+          - 16
+          - 17
+          - 21
+      release_name:
+        description: 'Release name (e.g., v1.0.0 or "Beta Build")'
+        required: true
+        default: 'Untitled Release'
+        type: string
+      release_notes:
+        description: 'Release notes/body (Markdown supported)'
+        required: false
+        default: ''
+        type: multiline
+      pre_release:
+        description: 'Mark as pre-release?'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch_name }}  # Use provided branch for manual dispatch
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ github.event.inputs.java_version || '17' }}
+        distribution: 'temurin'
+
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+
+    - name: Run Gradle check
+      uses: gradle/gradle-build-action@v3
+      with:
+        arguments: check
+
+    - name: Run Gradle build
+      uses: gradle/gradle-build-action@v3
+      with:
+        arguments: build
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: MinePy-${{ github.event.inputs.branch_name || github.ref_name }}-${{ github.event.inputs.java_version || '17' }}-${{ github.run_id }}  # Include branch and Java in artifact name
+        path: |
+          build/libs/*.jar
+          build/libs/*.sources.jar
+        retention-days: 90  # Keep artifacts for 90 days
+
+    - name: Create Release (only on manual dispatch)
+      if: github.event_name == 'workflow_dispatch'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.event.inputs.release_name }}
+        name: ${{ github.event.inputs.release_name }} (Branch: ${{ github.event.inputs.branch_name }}, Java: ${{ github.event.inputs.java_version }})
+        body: |
+          Branch: ${{ github.event.inputs.branch_name }}
+          Java: ${{ github.event.inputs.java_version }}
+          ${{ github.event.inputs.release_notes }}
+        files: build/libs/*.jar
+        generate_release_notes: false
+        draft: false
+        prerelease: ${{ github.event.inputs.pre_release }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ci:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: build
+    steps:
+    - name: Notify CI Success
+      run: echo "CI build successful on branch ${{ github.ref_name }} with Java ${{ github.event.inputs.java_version || '17' }} - Artifacts uploaded and ready for download"
