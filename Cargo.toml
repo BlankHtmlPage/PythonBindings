@@ -1,0 +1,10 @@
+# Cargo.toml for the Rust helper "Flurion's Python Bindings" (now FlurionsPythonBindings)
+
+[package]
+name = "FlurionsPythonBindings"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.22"
+env_logger = "0.11.5"
