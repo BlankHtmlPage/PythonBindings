@@ -67,11 +67,3 @@ jobs:
         prerelease: ${{ github.event.inputs.pre_release }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  ci:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: build
-    steps:
-    - name: Notify CI Success
-      run: echo "CI build successful on branch ${{ github.ref_name }} - Artifacts uploaded and ready for download"
