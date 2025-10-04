@@ -2,24 +2,7 @@
 
 name: Build and Release
 
-on:
-  workflow_dispatch:
-    inputs:
-      release_name:
-        description: 'Release name (e.g., v1.0.0 or "Beta Build")'
-        required: true
-        default: 'Untitled Release'
-        type: string
-      release_notes:
-        description: 'Release notes/body (Markdown supported)'
-        required: false
-        default: ''
-        type: multiline
-      pre_release:
-        description: 'Mark as pre-release?'
-        required: false
-        default: false
-        type: boolean
+on: workflow_dispatch
 
 jobs:
   build:
@@ -53,16 +36,3 @@ jobs:
           target/release/FlurionsPythonBindings.exe
           Cargo.lock
         retention-days: 90  # Keep artifacts for 90 days
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ github.event.inputs.release_name }}
-        name: ${{ github.event.inputs.release_name }}
-        body: ${{ github.event.inputs.release_notes }}
-        files: target/release/FlurionsPythonBindings.exe
-        generate_release_notes: false
-        draft: false
-        prerelease: ${{ github.event.inputs.pre_release }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
