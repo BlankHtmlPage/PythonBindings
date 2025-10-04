@@ -3,9 +3,6 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - '**'  # Run CI builds on pushes to any branch
   workflow_dispatch:
     inputs:
       release_name:
