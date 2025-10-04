@@ -54,8 +54,7 @@ jobs:
           Cargo.lock
         retention-days: 90  # Keep artifacts for 90 days
 
-    - name: Create Release (only on manual dispatch)
-      if: github.event_name == 'workflow_dispatch'
+    - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.event.inputs.release_name }}
@@ -66,4 +65,4 @@ jobs:
         draft: false
         prerelease: ${{ github.event.inputs.pre_release }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
